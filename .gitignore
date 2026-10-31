@@ -1,0 +1,11 @@
+# Personal files: never commit these to a public repository.
+config.toml
+profile.md
+state/
+digests/
+.env
+*.local.*
+
+__pycache__/
+*.pyc
+.venv/

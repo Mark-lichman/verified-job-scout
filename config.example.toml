@@ -1,0 +1,64 @@
+# verified-job-scout settings. Copy to config.toml and edit.
+# Every setting is optional: anything you leave out uses the default shown here.
+
+profile = "profile.md"      # who you are and what you want, in plain words (see profile.example.md)
+state_dir = "state"         # what was already sent and what you applied to
+digest_dir = "digests"      # a copy of every shortlist, as Markdown and HTML
+
+[search]
+# Title rules are regular expressions, matched without case. A title must match one
+# include rule and no exclude rule. The defaults target product management roles.
+# title_include = ["product (manager|management|lead|leader|director|officer)", "\\b(head|director|vp|vice president|chief)\\b.*\\bproduct"]
+# title_exclude = ["marketing", "designer", "analyst", "engineer", "intern", "sales"]
+
+# Workday boards have no "list everything" call, so they are searched with these terms.
+# workday_terms = ["product manager", "director product", "head of product"]
+
+# Places you would work. Empty means anywhere. Remote roles pass if remote_ok is true.
+location_include = ["San Francisco", "Bay Area", "Oakland", "San Jose", "Palo Alto", "Menlo Park"]
+remote_ok = true
+location_exclude = ["India", "United Kingdom", "Canada"]
+
+max_age_days = 14           # ignore postings older than this
+
+[boards]
+lists = ["health"]          # files in boards/ to sweep, without .txt
+extra = [                   # your own boards, one per line: "<ats> <slug>"
+  # "greenhouse abridge",
+  # "ashby ramp",
+  # "workday abbott.wd5.myworkdayjobs.com AbbottCareers",
+]
+
+[pay]
+floor = 0                   # yearly base in USD. Postings whose whole stated range is below this are dropped.
+
+[discovery]
+# Needs EXA_API_KEY. Finds boards your lists miss. Each search costs well under one cent.
+enabled = true
+num_results = 10
+queries = [
+  "director of product healthcare",
+  "senior product manager health tech",
+]
+find_companies = [          # company searches; the tool then finds each company's job board
+  # "seed stage digital health startups in the San Francisco Bay Area",
+]
+
+[community]
+mindtheproduct = false      # Mind the Product job board. Check its terms before turning this on.
+
+[scoring]
+# Needs ANTHROPIC_API_KEY. Without it, matches are listed by date with no scores.
+model = "claude-haiku-5-5"  # a stronger model scores better and costs more
+max_candidates = 40         # the most postings sent for scoring in one run (cost cap)
+max_results = 15            # the most roles in one shortlist
+tier_a = 70
+tier_b = 55
+
+[notify]
+method = "file"             # file | smtp | resend
+to = ""                     # your email address
+from = ""                   # sender; for Gmail SMTP use your own address
+# smtp_host = "smtp.gmail.com"   # password comes from the SMTP_PASSWORD environment variable
+# smtp_port = 587
+subject = "Job shortlist for {date}: {count} roles"

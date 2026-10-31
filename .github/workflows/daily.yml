@@ -1,0 +1,78 @@
+# Runs the scout every morning in your own copy of this repository.
+# Your config and profile live in repository SECRETS, never in the code, so they stay private
+# even if your copy is public. See "Run it on GitHub Actions" in the README.
+name: daily shortlist
+
+on:
+  schedule:
+    - cron: "0 15 * * *"   # 15:00 UTC = 7 or 8 AM Pacific. Change to suit your time zone.
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-shortlist
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Do nothing in a copy that has not been set up yet (no JOBSCOUT_PROFILE secret).
+    env:
+      CONFIGURED: ${{ secrets.JOBSCOUT_PROFILE != '' }}
+    steps:
+      - name: Check setup
+        if: env.CONFIGURED != 'true'
+        run: echo "::notice::Add the JOBSCOUT_PROFILE and JOBSCOUT_CONFIG secrets to turn on the daily run (see README)."
+
+      - uses: actions/checkout@v4
+        if: env.CONFIGURED == 'true'
+      - uses: actions/setup-python@v5
+        if: env.CONFIGURED == 'true'
+        with:
+          python-version: "3.12"
+
+      # The record of what was already sent (state/) persists between runs in the Actions cache.
+      - name: Restore state
+        if: env.CONFIGURED == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: state
+          key: jobscout-state-${{ github.run_id }}
+          restore-keys: jobscout-state-
+
+      - name: Write config and profile from secrets
+        if: env.CONFIGURED == 'true'
+        env:
+          JOBSCOUT_CONFIG_TOML: ${{ secrets.JOBSCOUT_CONFIG }}
+          JOBSCOUT_PROFILE_MD: ${{ secrets.JOBSCOUT_PROFILE }}
+        run: |
+          printf '%s' "$JOBSCOUT_CONFIG_TOML" > config.toml
+          printf '%s' "$JOBSCOUT_PROFILE_MD" > profile.md
+
+      - name: Build and send the shortlist
+        if: env.CONFIGURED == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: python -m jobscout run
+
+      - name: Save state
+        if: always() && env.CONFIGURED == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: state
+          key: jobscout-state-${{ github.run_id }}
+
+      - name: Keep a copy of the shortlist
+        if: always() && env.CONFIGURED == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: shortlist-${{ github.run_id }}
+          path: digests/
+          retention-days: 14
