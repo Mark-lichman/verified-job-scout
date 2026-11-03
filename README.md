@@ -18,7 +18,7 @@ community boards ──┘                (live by definition)            │
           email <─ shortlist <─ Claude scores fit <─ pay floor <─ already seen or applied?
 ```
 
-1. **Boards.** It starts from board lists in `boards/` (the starter list has about 990 health and health-tech employers), plus your own. Optional [Exa](https://exa.ai) searches find boards your lists miss and save them for later runs.
+1. **Boards.** It starts from board lists in `boards/` (the starter list has about 640 health and health-tech employers, each checked live on 2026-11-02), plus your own. Optional [Exa](https://exa.ai) searches find boards your lists miss and save them for later runs.
 2. **Sweep.** It asks each board's public API for its open jobs. A job the API lists is open right now. That is the "verified" in the name: **search results only ever add boards to sweep, never postings to report.**
 3. **Rules.** Title, posting age and location filters run for free before any paid step.
 4. **Memory.** It never repeats a job it already sent, or one in your applied list.
